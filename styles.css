@@ -1,21 +1,144 @@
-#tasks{
-    list-style: none;
+/* BODY */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #333333;
+    margin: 0;
     padding: 0;
 }
 
-li{
+/* TITLE */
+h1 {
+    text-align: center;
+    color: #e9e9e9;
+}
+
+p{
+    color: #e9e9e9;
+    text-align: center;
+}
+
+/* FORM */
+form {
+    text-align: center;
+    margin-top: 20px;
+}
+
+input[type="text"] {
     padding: 10px;
-    margin-bottom: 5px;
-    background-color: bisque;
+    width: 23%;
+    font-size: 24px;
+    border: 1px solid #ccc;
     border-radius: 5px;
 }
 
-li:hover{
-    background-color: rgb(210, 179, 132);
+input[type="submit"] {
+    font-size: 24px;
+    padding: 10px 20px;
+    background-color: #6666ec;
+    color: white;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-.completed{
+input[type="submit"]:hover {
+    background-color: #5040b9;
+}
+
+/* TASKS */
+#tasks {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity: 0;
+    }
+    to{
+        opacity: 1;
+    }
+}
+
+li {
+    position: relative;
+    width: 30%;
+    text-align: center;
+    font-size: 24px;
+    color: #e9e9e9;
+    background-color: #7478b6;
+    padding: 15px;
+    margin: 5px 0;
+    border-radius: 5px;
+
+    transition: background-color 0.3s ease;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+li:hover {
+    background-color: #4d4388;
+    color: #e9e9e9;
+    cursor: pointer;
+}
+
+/* Style for incomplete tasks */
+li:not(.completed):hover {
+    background-color: #4d4388;
+}
+
+
+.completed {
     text-decoration: line-through;
-    color: #999;
+    background-color: rgb(53, 116, 53);
+    color: #e9e9e9;
+}
+
+/* Style for completed tasks */
+li.completed:hover {
+    background-color: #1d3c1d;
+}
+
+.delete-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    padding: 5px 10px;
+    background-color: #b52828;
+    color: #e9e9e9;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #cc0000;
+    box-shadow: #333333;
+}
+
+.task-checkbox {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px; 
+    appearance: none; 
+    border: 2px solid #ffffff;
+    border-radius: 3px; 
+    cursor: pointer;
+}
+
+.task-checkbox:checked::before {
+    content: '\2714';
+    font-size: 16px;
+    color: #ffffff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
