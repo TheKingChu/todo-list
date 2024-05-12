@@ -13,3 +13,5 @@ Simple to-do list app created using HTML, CSS, and JavaScript.
 
 ## Getting Started
 To use this app, simply clone or download the repository and open the `tasks.html` file in your web browser.
+
+Don't reload the page as that will wipe the list. I'm working on getting the local storage to work! 😊

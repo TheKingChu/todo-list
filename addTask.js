@@ -63,6 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         //update local storage
         updateLocalStorage();
+        //sort the tasks
+        sortTasks();
 
         //stop form from submitting
         return false;
@@ -77,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkbox.checked = !checkbox.checked; //toggle checkbox state
         listItem.classList.toggle("completed", checkbox.checked); //toggle completed class based on checkbox state
         updateLocalStorage();
+        sortTasks();
     }
     });
 
@@ -87,6 +90,33 @@ document.addEventListener("DOMContentLoaded", () => {
         const listItem = checkbox.parentElement;
         listItem.classList.toggle("completed", checkbox.checked); //toggle completed class based on checkbox state
         updateLocalStorage();
+        sortTasks();
     }
     });
+
+    //sort tasks by completion status
+    const sortTasks = () => {
+        const taskList = document.querySelector("#tasks");
+        const completedTasks = taskList.querySelectorAll("li.completed");
+        const incompleteTasks = taskList.querySelectorAll("li:not(.completed)");
+
+        //remove all tasks from the list
+        taskList.innerHTML = "";
+
+        //add incomplete tasks first
+        if (incompleteTasks.length > 0) {
+            const incompleteHeading = document.createElement("h2");
+            incompleteHeading.textContent = "Uncompleted Tasks";
+            taskList.appendChild(incompleteHeading);
+            incompleteTasks.forEach(task => taskList.appendChild(task));
+        }
+
+        //add completed tasks next
+        if (completedTasks.length > 0) {
+            const completedHeading = document.createElement("h2");
+            completedHeading.textContent = "Completed Tasks";
+            taskList.appendChild(completedHeading);
+            completedTasks.forEach(task => taskList.appendChild(task));
+        }
+    };
 });
