@@ -2,7 +2,7 @@
 window.onload = () => {
     const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
     tasks.forEach(task => {
-        addTaskToList(task);
+        addTask(task);
     });
 }
 
@@ -12,9 +12,66 @@ function updateLocalStorage(){
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+function checkDesktopView(){
+    return window.innerWidth > 600;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 document.addEventListener("DOMContentLoaded", () => {
+    //variables for dragging detection for phone view task delete
+    let startX;
+    let startY;
+    let distance;
+    let threshold = 50; //min distance for the swipe to delete
+    document.querySelector("#tasks").addEventListener("touchstart", (event) => {
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+    });
+    document.querySelector("#tasks").addEventListener("touchmove", (event) => {
+        if (!startX || !startY) {
+            return;
+        }
+
+        const touch = event.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        distance = Math.abs(deltaX);
+
+        // Check if swipe is horizontal and not vertical
+        if (distance > Math.abs(deltaY)) {
+            event.preventDefault(); // Prevent scrolling
+            const listItem = event.target.closest("li");
+
+            if (listItem) {
+                listItem.style.transition = "none"; // Disable transition to improve performance
+                listItem.style.transform = `translateX(${deltaX}px)`; // Move the task item horizontally
+            }
+        }
+    });
+
+    document.querySelector("#tasks").addEventListener("touchend", (event) => {
+        if (distance >= threshold) {
+            const listItem = event.target.closest("li");
+            if (listItem) {
+                listItem.remove(); // Delete the task item if the swipe distance exceeds the threshold
+                updateLocalStorage();
+                sortTasks();
+            }
+        } else {
+            const listItem = event.target.closest("li");
+            if (listItem) {
+                listItem.style.transition = ""; // Re-enable transition
+                listItem.style.transform = ""; // Reset the position of the task item
+            }
+        }
+
+        startX = null;
+        startY = null;
+        distance = 0;
+    });
+
     //get todays date
     const today = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -34,41 +91,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    //add new task to the list when the form is submitted
-    document.querySelector("form").onsubmit = () => {
-        const task = document.querySelector("#task").value;
-        
-        //create a list element to the ul element
-        const li = document.createElement("li")
+    //function to add a new task to the list
+    function addTask(task) {
+        const li = document.createElement("li");
         li.innerHTML = `
-        <input type="checkbox" class="task-checkbox">
-        <span>${task}</span>
-        <button class="delete-button">X</button>
+            <input type="checkbox" class="task-checkbox">
+            <span>${task}</span>
+            <button class="delete-button">X</button>
         `;
+        document.querySelector("#tasks").appendChild(li);
 
-        //actually add the task and add that to the list
-        document.querySelector("#tasks").append(li);
-
-        //when button is clicked remove from list
-        li.querySelector(".delete-button").onclick = (event) => {
+        //delete task when the delete button is clicked
+        li.querySelector(".delete-button").addEventListener("click", (event) => {
             event.stopPropagation();
             li.remove();
             updateLocalStorage();
-        };
+        });
 
-        //clear the input field after adding the task to the list
-        document.querySelector("#task").value = "";
-        //disable the submit button
-        document.querySelector("#submit").disabled = true;
-
-        //update local storage
+        //update local storage and sort tasks
         updateLocalStorage();
-        //sort the tasks
         sortTasks();
-
-        //stop form from submitting
-        return false;
-    };
+    }
 
     //toggle task completion when task is clicked
     document.querySelector("#tasks").addEventListener("click", (event) => {
@@ -100,11 +143,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const completedTasks = taskList.querySelectorAll("li.completed");
         const incompleteTasks = taskList.querySelectorAll("li:not(.completed)");
 
+        //flag variables to track if tasks exist for each category
+        let hasIncompleteTasks = incompleteTasks.length > 0;
+        let hasCompletedTasks = completedTasks.length > 0;
+
         //remove all tasks from the list
         taskList.innerHTML = "";
 
         //add incomplete tasks first
-        if (incompleteTasks.length > 0) {
+        if (hasIncompleteTasks) {
             const incompleteHeading = document.createElement("h2");
             incompleteHeading.textContent = "Uncompleted Tasks";
             taskList.appendChild(incompleteHeading);
@@ -112,11 +159,74 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         //add completed tasks next
-        if (completedTasks.length > 0) {
+        if (hasCompletedTasks) {
             const completedHeading = document.createElement("h2");
             completedHeading.textContent = "Completed Tasks";
             taskList.appendChild(completedHeading);
             completedTasks.forEach(task => taskList.appendChild(task));
         }
+
+        //remove category titles if there are no tasks in the respective categories
+        if (!hasIncompleteTasks) {
+            const incompleteHeading = taskList.querySelector("h2");
+            if (incompleteHeading && incompleteHeading.textContent === "Uncompleted Tasks") {
+                incompleteHeading.remove();
+            }
+        }
+
+        if (!hasCompletedTasks) {
+            const completedHeading = taskList.querySelector("h2");
+            if (completedHeading && completedHeading.textContent === "Completed Tasks") {
+                completedHeading.remove();
+            }
+        }
     };
+
+    //ddd new task to the list when the form is submitted (Desktop view)
+    document.querySelector("#desktop-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const task = document.querySelector("#task").value.trim();
+        if (task !== "") {
+            addTask(task);
+            document.querySelector("#task").value = "";
+        }
+    });
+
+    //ddd new task to the list when the form is submitted (Phone view)
+    document.querySelector("#phone-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const task = document.querySelector("#phone-task").value.trim();
+        if (task !== "") {
+            addTask(task);
+            document.querySelector("#phone-task").value = "";
+        }
+    });
+
+    //display phone form when button is clicked
+    document.querySelector("#open-task").addEventListener("click", () => {
+        document.querySelector("#phone-form").style.display = "block";
+        document.querySelector("#open-task").style.display = "none";
+    });
+
+    //hide the phone form when task is submitted
+    document.querySelector("#phone-submit").addEventListener("click", () => {
+        document.querySelector("#phone-form").style.display = "none";
+        document.querySelector("#open-task").style.display = "block";
+    })
+
+    function toggleFormVisibility(){
+        const desktopForm = document.getElementById("desktop-form");
+        const phoneForm = document.getElementById("open-task");
+
+        if(checkDesktopView()){
+            desktopForm.style.display = "block";
+            phoneForm.style.display = "none";
+        }
+        else{
+            desktopForm.style.display = "none";
+            phoneForm.style.display = "block";
+        }
+    }
+    toggleFormVisibility();
+    window.addEventListener("resize", toggleFormVisibility);
 });
