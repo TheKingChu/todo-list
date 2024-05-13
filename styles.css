@@ -158,6 +158,10 @@ li.completed:hover {
     display: none;
 }
 
+#policy{
+    font-size: smaller;
+}
+
 
 /* PHONE VIEW */
 @media screen and (max-width: 600px) {
